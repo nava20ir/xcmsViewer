@@ -24,7 +24,7 @@ landingPage_module <- function(input, output, session) {
   
   hashTab <- read.delim(
     # "/dss/ga52cib/xcmsViewer/passcodeList.tsv", header = TRUE,
-    "/home/shiny/data/xcmsViewer/passcodeList.tsv", header = TRUE, stringsAsFactors = FALSE
+    "passcodeList.tsv", header = TRUE, stringsAsFactors = FALSE
     # "/media/share_LRZCC/xcmsViewer/passcodeList_debug.tsv", header = TRUE, stringsAsFactors = FALSE
   )
   

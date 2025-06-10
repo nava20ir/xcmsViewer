@@ -18,4 +18,4 @@ RUN R -e 'BiocManager::install(c("survminer", "survival","fastmatch","reshape2",
 RUN R -e 'BiocManager::install(c("Biobase", "fgsea", "S4Vectors", "SummarizedExperiment"), update = FALSE)'
 RUN R -e "install.packages('devtools')"
 RUN R -e 'devtools::install_github("mengchen18/omicsViewer", dependencies = TRUE)'
-RUN R -e "devtools::install_github('mengchen18/xcmsViewer', upgrade='never')"
+RUN R -e "devtools::install_github('nava20ir/xcmsViewer', upgrade='never')"
