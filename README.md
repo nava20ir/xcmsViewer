@@ -3,5 +3,4 @@
 The xcmsViewer package provides a pipeline for analyzing and visualizing the mass spectrometry-based (LC-MS/MS) untargeted metabolomics data. 
 More information could be find here:
 
-https://nava20ir.github.io/xcmsViewer/
-
+https://mengchen18.github.io/xcmsViewer/
