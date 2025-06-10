@@ -15,7 +15,7 @@ xcmsAnnotationTab_ui <- function(id) {
       HTML("<br>"),
       tabsetPanel(
         tabPanel(
-          "MS2 & annotation",
+          "MS2 & annotations Tab",
           msAnnotation_UI(ns("ms2v"))
         ),
         tabPanel(
