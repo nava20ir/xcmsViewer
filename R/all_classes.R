@@ -1,4 +1,5 @@
 ############################# global variables ########################
+# 
 .xcmsViewerInternalObjects <- function() {
   list(
     # xcmsFeatureSet
