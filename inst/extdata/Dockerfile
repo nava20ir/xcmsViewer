@@ -7,8 +7,22 @@ RUN apt-get update \
 	libnetcdf-dev \
 	libxml2-dev \
 	libglpk-dev \
+	librsvg2-dev \
+	libopenbabel-dev \
 	libnode-dev  \
 	libz-dev
+
+# the 
+
+# Copy the script into the container
+COPY babel_installation.sh /usr/local/bin/babel_installation.sh
+
+# Make it executable
+RUN chmod +x /usr/local/bin/babel_installation.sh
+
+# Run the script
+RUN /usr/local/bin/babel_installation.sh
+
 
 RUN R -e "install.packages('BiocManager')"
 # RUN R -e "BiocManager::install('omicsViewer')"
@@ -24,6 +38,6 @@ RUN R -e "devtools::install_github('nava20ir/xcmsViewer', upgrade='never')"
 RUN mkdir /home/shiny/data && \
 	mkdir /home/shiny/app
 
-COPY inst/extdata/ /home/shiny/app/
+COPY *.R /home/shiny/app/
 
 CMD ["R", "-e", "shiny::runApp('/home/shiny/app', host = '0.0.0.0', port = 3838)"]

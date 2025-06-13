@@ -17,17 +17,30 @@ molecularVisualization <- function(input, output, session, dat, featureSelected=
     an$ms1$smiles[1]
 
   })
-   output$molplot <- renderPlot({
-    req(maTab()) 
-    #print('running the module')
-    sdf <- tryCatch(smiles2sdf(maTab())[[1]], error = function(e) print('sth is wrong'))
-    if (!is.null(sdf)) {
-      plot(sdf)
-    } else {
-      plot.new()
-      text(0.5, 0.5, "Invalid SMILES", cex = 1.5)
-    }
+
+
+output$molplot <- renderPlot({
+  req(maTab())
+
+  # Convert SMILES to SDF safely
+  sdf <- tryCatch({
+    smiles <- maTab()
+    if (is.null(smiles) || smiles == "") stop("Empty SMILES")
+    sdf_list <- smiles2sdf(smiles)
+    if (length(sdf_list) == 0 || is.null(sdf_list[[1]])) stop("Invalid conversion")
+    sdf_list[[1]]
+  }, error = function(e) {
+    NULL
   })
+
+  # Plot only if we have a valid SDF
+  if (inherits(sdf, "SDF")) {
+    plot(sdf)
+  } else {
+    plot.new()
+    text(0.5, 0.5, "Invalid or missing SMILES", cex = 1.5)
+  }
+})
 
 }
 

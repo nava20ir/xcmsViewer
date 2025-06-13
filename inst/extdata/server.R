@@ -1,8 +1,8 @@
 library(xcmsViewer)
 library(omicsViewer)
 source("landingPage.R")
-# source("landingPage.R")
-source("/home/shiny/app/landingPage.R")
+source("landingPage.R")
+#source("/home/shiny/app/landingPage.R")
 ll <- list(
   list(
     tabName = "Annotation",
