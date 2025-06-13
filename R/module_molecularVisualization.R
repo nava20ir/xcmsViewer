@@ -23,27 +23,46 @@ molecularVisualization <- function(input, output, session, dat, featureSelected=
 output$molplot <- renderPlot({
   req(maTab())
 
-  sdf <- tryCatch({
-    s <- maTab()
-    if (is.null(s) || !nzchar(s)) stop("Empty SMILES")
-    sdf <- smiles2sdf(s)[[1]]
-    sdf <- gen2D(sdf)
+  req(maTab())
 
+  print("Starting molplot rendering...")
+
+  sdf <- tryCatch({
+    smi <- maTab()
+    print(paste("SMILES input:", smi))
+
+    if (is.null(smi) || !nzchar(smi)) stop("Empty SMILES")
+
+    sdf <- smiles2sdf(smi)[[1]]
+    sdf <- gen2D(sdf)
     coords <- atomblock(sdf)
-    # Defensive check: ensure X and Y are finite
-    if (any(!is.finite(coords[, 1:2]))) stop("Non-finite coordinates")
+
+    print("Atomblock coordinates:")
+    print(coords)
+
+    # Defensive check for finite coordinates
+    if (any(!is.finite(as.numeric(coords[, 1:2])))) {
+      stop("Non-finite coordinates found")
+    }
 
     sdf
   }, error = function(e) {
-    message("Error: ", e$message)
+    print(paste("Caught error in sdf processing:", e$message))
     NULL
   })
 
   if (inherits(sdf, "SDF")) {
-    plot(sdf)
+    tryCatch({
+      print("Plotting molecule...")
+      plot(sdf)
+    }, error = function(e) {
+      print(paste("Plotting error:", e$message))
+      plot.new()
+      text(0.5, 0.5, "Plot error", cex = 1.5)
+    })
   } else {
     plot.new()
-    text(0.5, 0.5, "Cannot render molecule", cex = 1.5)
+    text(0.5, 0.5, "Invalid SMILES", cex = 1.5)
   }
 })
 
