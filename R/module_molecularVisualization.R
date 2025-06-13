@@ -1,4 +1,5 @@
 library(ChemmineR)
+library(ChemmineOB)
 
 molecularVisualization_UI <- function(id) {
 ns <- NS(id) 
