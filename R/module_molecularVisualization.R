@@ -23,9 +23,6 @@ molecularVisualization <- function(input, output, session, dat, featureSelected=
 
 output$molplot <- renderPlot({
   req(maTab())
-
-  req(maTab())
-
   print("Starting molplot rendering...")
 
   sdf <- tryCatch({
