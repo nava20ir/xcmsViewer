@@ -34,17 +34,17 @@ output$molplot <- renderPlot({
 
     if (is.null(smi) || !nzchar(smi)) stop("Empty SMILES")
 
-    sdf <- smiles2sdf(smi)[[1]]
-    sdf <- gen2D(sdf)
-    coords <- atomblock(sdf)
+    sdf <-  ChemmineR::smiles2sdf(smi)[[1]]
+    #sdf <- gen2D(sdf)
+    #coords <- atomblock(sdf)
 
-    print("Atomblock coordinates:")
-    print(coords)
+    #print("Atomblock coordinates:")
+    #print(coords)
 
     # Defensive check for finite coordinates
-    if (any(!is.finite(as.numeric(coords[, 1:2])))) {
-      stop("Non-finite coordinates found")
-    }
+    #if (any(!is.finite(as.numeric(coords[, 1:2])))) {
+    #  stop("Non-finite coordinates found")
+    #}
 
     sdf
   }, error = function(e) {
