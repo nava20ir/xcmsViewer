@@ -22,6 +22,10 @@ xcmsAnnotationTab_ui <- function(id) {
           "Peaks",
           DT::dataTableOutput(ns("peaktable")),
           plotlyOutput(ns("ms1eic_indpeak"), height = "320px")
+        ),
+        tabPanel(
+          "Structure",
+           molecularVisualization_UI((ns("str2v")))
         )
       )
     )    
@@ -166,4 +170,6 @@ xcmsAnnotationTab_module <- function(
   
   ## =============== MS2 visual =================
   callModule(msAnnotation, "ms2v", dat = .object, featureSelected = obj)
+  callModule(molecularVisualization, "str2v", dat = .object, featureSelected = obj)
+
 }

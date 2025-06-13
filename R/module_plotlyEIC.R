@@ -1,4 +1,3 @@
-#' Plot EIC using plotly
 #' @param x a data.frame with 5 columns
 #'  - mz: mz
 #'  - intensity: intensity
@@ -14,7 +13,6 @@
 #' @rawNamespace import(plotly, except = groups)
 
 plotly_EIC <- function(x, range, xlim = NULL, legend.title = "Group", col=NA) {
-  
   im <- max(x$intensity)*1.05
   if (is.na(col[1])) {
     ucv <- unique(x$colorGroup)
