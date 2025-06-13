@@ -1,4 +1,5 @@
 library(ChemmineR)
+
 molecularVisualization_UI <- function(id) {
 ns <- NS(id) 
 shinyjs::useShinyjs()
@@ -22,23 +23,27 @@ molecularVisualization <- function(input, output, session, dat, featureSelected=
 output$molplot <- renderPlot({
   req(maTab())
 
-  # Convert SMILES to SDF safely
   sdf <- tryCatch({
-    smiles <- maTab()
-    if (is.null(smiles) || smiles == "") stop("Empty SMILES")
-    sdf_list <- smiles2sdf(smiles)
-    if (length(sdf_list) == 0 || is.null(sdf_list[[1]])) stop("Invalid conversion")
-    sdf_list[[1]]
+    s <- maTab()
+    if (is.null(s) || !nzchar(s)) stop("Empty SMILES")
+    sdf <- smiles2sdf(s)[[1]]
+    sdf <- gen2D(sdf)
+
+    coords <- atomblock(sdf)
+    # Defensive check: ensure X and Y are finite
+    if (any(!is.finite(coords[, 1:2]))) stop("Non-finite coordinates")
+
+    sdf
   }, error = function(e) {
+    message("Error: ", e$message)
     NULL
   })
 
-  # Plot only if we have a valid SDF
   if (inherits(sdf, "SDF")) {
     plot(sdf)
   } else {
     plot.new()
-    text(0.5, 0.5, "Invalid or missing SMILES", cex = 1.5)
+    text(0.5, 0.5, "Cannot render molecule", cex = 1.5)
   }
 })
 
