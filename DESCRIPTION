@@ -9,6 +9,9 @@ Description: Converting MSnExp object to simple table format, including meta tab
 License: GPL (>= 2)
 Depends: R (>= 4.2.0)
 Imports: BiocParallel, MSnbase, dplyr, fastmatch, reshape2, xcms, MAIT, utils, Biobase, stringr, methods, graphics, RSQLite, shiny, DT, shinythemes, beeswarm, grDevices, randomcoloR, shinyWidgets, DBI, shinyjs, openxlsx, stats, S4Vectors, plotly, omicsViewer, matrixStats
-Suggests: parallel
+Suggests: 
+    parallel,
+    testthat (>= 3.0.0)
 Encoding: UTF-8
 RoxygenNote: 7.1.2
+Config/testthat/edition: 3
