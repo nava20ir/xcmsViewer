@@ -78,9 +78,16 @@ RUN R -e 'devtools::install_github("mengchen18/omicsViewer", dependencies = TRUE
 RUN R -e "devtools::install_github('nava20ir/xcmsViewer', upgrade='never')"
 
 
+
 RUN mkdir /home/shiny/data && \
         mkdir /home/shiny/app
 
-COPY *.R /home/shiny/app/
+#COPY *.R /home/shiny/app/
+# Copy your app
+COPY *.R /srv/shiny-server/
+RUN sed -i 's/3838/5968/' /etc/shiny-server/shiny-server.conf
 
-CMD ["R", "-e", "shiny::runApp('/home/shiny/app', host = '0.0.0.0', port = 3838)"]
+EXPOSE 5968
+
+# Run shiny server
+CMD ["/usr/bin/shiny-server"]
