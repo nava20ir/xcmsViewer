@@ -82,12 +82,16 @@ RUN R -e "devtools::install_github('nava20ir/xcmsViewer', upgrade='never')"
 RUN mkdir /home/shiny/data && \
         mkdir /home/shiny/app
 
-#COPY *.R /home/shiny/app/
-# Copy your app
+
+### USE ONE EITHER ONE OF THE BELLOW APPROACHES
+
+##### 1- TO USE IN SHINY PROXY WE SHOULD AVOID USING SHINY SERVER THEREFORE UNCOMMENT THE BELLOW TWO LINES
+# COPY *.R /home/shiny/app/
+# CMD ["R", "-e", "shiny::runApp('/home/shiny/app', host = '0.0.0.0', port = 3838)"]
+
+
+##### 2- TO USE AS INDEPENDENT CONAINER WE USED IT IN COMBINATION WITH NGINX REVERSE PROXYING
 COPY *.R /srv/shiny-server/
 RUN sed -i 's/3838/5968/' /etc/shiny-server/shiny-server.conf
-
 EXPOSE 5968
-
-# Run shiny server
 CMD ["/usr/bin/shiny-server"]
