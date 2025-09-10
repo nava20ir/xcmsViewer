@@ -6,8 +6,11 @@ xcmsAnnotationTab_ui <- function(id) {
       top = 392, right = 15, style = "z-index: 999;",
       div(style="display: inline-block;vertical-align:top;",
         downloadButton(ns("downloadMS2"), label = "Spectra (MGF)")),
-      div(style="display: inline-block;vertical-align:top;",
+            div(style="display: inline-block;vertical-align:top;",
         downloadButton(ns("downloadAllMS2"), label = "All MS2 Spectra (MGF)")
+        ),
+      div(style="display: inline-block;vertical-align:top;",
+        downloadButton(ns("downloadAllMS2Consensus"), label = "All Consensus MS2 Spectra (MGF)")
         )
       ),    
     fluidRow(
@@ -131,6 +134,23 @@ xcmsAnnotationTab_module <- function(
     content = function(con) {
       showModal(dataModal())
       q <- prepareAllMGFs(.object(), con)
+      if (file.exists(con)) 
+        removeModal() else
+          showModal(dataModal(empty = TRUE))
+    },
+    contentType = "text/mgf"
+  )
+
+
+
+
+  output$downloadAllMS2Consensus <- downloadHandler(
+    filename = function() {
+      paste('allMS2Spec', Sys.Date(), '.mgf', sep='')
+    },
+    content = function(con) {
+      showModal(dataModal())
+      q <- prepareAllConsensusMGFs(.object(), con)
       if (file.exists(con)) 
         removeModal() else
           showModal(dataModal(empty = TRUE))

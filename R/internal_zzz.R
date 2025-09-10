@@ -102,6 +102,53 @@ prepareMGF <- function(scan, scanMeta, cons, mode, featureId) {
 }
 
 
+#' prepare only for consensus MGF file to be download
+#' @param scan scan list, a data.frame with three columns - mz, intensity, ID
+#' @param scanMeta scan meta data
+#' @param cons consensusMS2Spectrum - a data.frame with two columns, mz and intensity
+#' @param mode 1+ or 1-
+#' @param featureId ID
+#' @examples 
+#' # x is obj() from xcmsAnnotationTab_module
+#' # mgf <- prepareMGF(
+#' # scan = x$ms2scan,
+#' # scanMeta = x$ms2scanMeta,
+#' # cons = x$consensusMS2Spectrum,
+#' # mode = "pos",
+#' # featureId = x$featureid
+#' # )
+#' # writeLines(mgf, con = "spectrum.mfg")
+#' 
+prepareONlyConsensusMGF <- function(scan, scanMeta, cons, mode, featureId) {
+  
+  scanMeta <- scanMeta[scanMeta$ID %in% scan$ID, ]
+  if (nrow(scanMeta) == 0)
+    return(NULL)
+  
+  peaks <- paste(cons$mz, cons$intensity)
+  meta <- sprintf(
+    "Feature:%s|RT:%s|TIC:%s|ID:Consensus_MS2_spectrum_of_%s", 
+    featureId,
+    median(scanMeta$rt, na.rm = TRUE), 
+    sum(scanMeta$tic, na.rm = TRUE),
+    nrow(scanMeta))
+  
+  pc <- c(
+    "BEGIN IONS",
+    paste0("PEPMASS=", median(scanMeta$precMz, na.rm = TRUE)),
+    paste0("CHARGE=", mode),
+    "MSLEVEL=2",
+    paste0("TITLE=", meta),
+    peaks,
+    "END IONS",
+    "")
+   
+  pc
+}
+
+
+
+
 #' Convert spectra from string format to data.frame format
 #' @param x a character (vector) of spectra in string format,
 #'   such as "78.454;123.333;332.232|50;1500;400"

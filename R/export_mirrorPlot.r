@@ -9,7 +9,7 @@
 #' @export
 
 .mirrorPlot <- function(x, col, legend.peak.lower="", legend.peak.upper="", highlight=NULL, xlim=NULL) {
-  
+  print('this is  a test for the mirror plot')
   if (any(is.infinite(xlim)))
     return()
   if (nrow(x) == 0) 
