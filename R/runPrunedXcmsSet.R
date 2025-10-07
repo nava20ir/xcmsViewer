@@ -1,4 +1,10 @@
-#' mapping ms2 chromPeaksMS2
+#' Map MS2 Spectra to Chromatographic Peaks
+#'
+#' This function links chromatographic peaks detected by \pkg{xcms}
+#' (from MS1 data) to corresponding MS2 spectra based on overlapping
+#' retention time (RT) and precursor m/z windows. It returns a data frame
+#' indicating which peaks have associated MS2 scans and whether those
+#' MS2 scans are marked as valid.
 #' @param x the MSnExp object
 #' @param mtab_files paths of meta table, often returned by function \code{peakPicking }
 #' @param fun_parallel the parallel function, could be \code{mclapply} or \code{bplapply}
