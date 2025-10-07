@@ -1,16 +1,46 @@
-#' xcms annotation of MS1
-#' @param x an object of prunedXcmsSet
-#' @param mode Ionization mode. pos or neg
-#' @param ref reference MS2 spectra used annotate the experimental MS2 spectra
-#' @param ppmtol the mass tolerence given by parts per million (PPM)
-#' @param fun_parallel the parallel function, could be \code{mclapply} or \code{bplapply}
-#' @param ips The likelihood of the rule ("ips" column) in adduct table in MAIT package. 
-#' @param ... the parameters passed to parallel function
-#' @import parallel
-#' @import BiocParallel
-#' @importFrom MAIT Biotransformations
-#' @importFrom utils data
-#' 
+#' Annotate Features Based on MS1 Masses
+#'
+#' Performs MS1-based annotation of LC–MS features by matching measured m/z values 
+#' to reference compound masses, taking into account common adducts for positive 
+#' or negative ion mode.
+#'
+#' @param x An object containing LC–MS features (e.g., a `prunedXcmsSet` or similar) 
+#'   with feature metadata accessible via `fData(x@featureSet)`.
+#' @param mode Character, either `"pos"` or `"neg"`. Specifies ionization mode 
+#'   for selecting appropriate adducts. Default is `"pos"`.
+#' @param ref Data frame of reference compounds with at least a mass column. 
+#'   Used to match measured features.
+#' @param ppmtol Numeric, mass tolerance in parts per million (ppm) for matching features to reference masses. Default is 10.
+#' @param ips Numeric between 0 and 1, minimum IPS (Intensity/Presence Score) threshold for adducts to consider. Default is 0.75.
+#' @param fun_parallel Function for parallel processing (e.g., `parallel::mclapply`). Default is `parallel::mclapply`.
+#' @param ... Additional arguments passed to the parallel function.
+#'
+#' @return A data frame with MS1 annotation results:
+#' \describe{
+#'   \item{FeatureID}{ID of the LC–MS feature.}
+#'   \item{MatchedCompound}{Name of the matched reference compound.}
+#'   \item{Adduct}{Adduct type assigned to the feature.}
+#'   \item{MassDiff}{Mass difference between observed and theoretical m/z.}
+#'   \item{Score}{Optional score reflecting quality of the match.}
+#' }
+#' The returned object has an attribute `ppmtol` storing the mass tolerance used.
+#'
+#' @details
+#' 1. Loads the MAIT package adduct tables (`posAdducts` or `negAdducts`) according to `mode`.  
+#' 2. Filters adducts based on the IPS threshold.  
+#' 3. For each feature, `massQuery()` is called to match the measured m/z to all possible
+#'    reference compound masses with selected adducts within the ppm tolerance.  
+#' 4. Parallelization is supported via `fun_parallel`.
+#'
+#' @examples
+#' \dontrun{
+#' # x is a prunedXcmsSet object
+#' # ref is a reference compound table with at least a 'mass' column
+#' annotations <- annotateMS1(x, mode = "pos", ref = ref, ppmtol = 10, ips = 0.8)
+#' head(annotations)
+#' }
+#'
+#' @export
 annotateMS1 <- function(
   x, mode = c("pos", "neg")[1], ref, ppmtol = 10, ips = 0.75, fun_parallel = parallel::mclapply, ...
 ) {
@@ -41,24 +71,70 @@ annotateMS1 <- function(
 }
 
 
-#' Query possible metabolites according to given m/z
-#' @param m the mass of the metabolites
-#' @param ppmtol the mass tolerence given by parts per million (PPM)
-#' @param refTab the reference metabolites table, it must contain at list the following columns:
-#'   name - the name of metabolites
-#'   monoisotopic_molecular_weight - the monoisotopic molecular weight of metabolites
-#' @param addTable the adduct table, it must contain at least the following columns:
-#'   adduct - the name of the adduct, such as "[M+H]+"
-#'   massdiff - the mass different of an adduct
-#'   nmol - the mol of metabolite, for example, [2M-H] will be 2
-#'   ips - Four values are possible (0.25,0.5,0.75,1) depending on the likelihood of the rule 
-#' @param ID an optional ID column added at the end of the matched data.frame
+#' Query Possible Metabolites by m/z
+#'
+#' Given a measured mass (m/z), this function queries a reference metabolite 
+#' table and an adduct table to find all potential metabolite matches within 
+#' a specified mass tolerance (ppm).
+#'
+#' @param m Numeric, the measured mass (m/z) of the feature.
+#' @param ppmtol Numeric, mass tolerance in parts per million (ppm) for matching.
+#' @param refTab Data frame of reference metabolites. Must contain at least the following columns:
+#'   \describe{
+#'     \item{name}{Metabolite name}
+#'     \item{monoMass}{Monoisotopic molecular weight}
+#'   }
+#' @param addTable Data frame of adducts. Must contain at least:
+#'   \describe{
+#'     \item{Adduct}{Name of the adduct, e.g., "[M+H]+"}
+#'     \item{MassDiff}{Mass difference of the adduct relative to the neutral molecule}
+#'     \item{Nmol}{Number of molecules in the adduct (e.g., 2 for [2M-H])}
+#'     \item{IPS}{Intensity/Presence Score; possible values: 0.25, 0.5, 0.75, 1}
+#'   }
+#' @param ID Optional character or numeric ID to be included in the output for each matched row.
+#'
+#' @return A data frame of all reference metabolites that match the measured mass, including:
+#' \describe{
+#'   \item{ID}{Optional feature ID if provided}
+#'   \item{InChIKey}{Metabolite InChIKey}
+#'   \item{CID}{Compound ID from reference table}
+#'   \item{cpdName}{Metabolite name}
+#'   \item{formula}{Chemical formula}
+#'   \item{monoMass}{Monoisotopic mass}
+#'   \item{Adduct}{Matched adduct}
+#'   \item{MassDiff}{Mass difference of the adduct}
+#'   \item{Nmol}{Number of molecules in the adduct}
+#'   \item{IPS}{Intensity/Presence Score for the adduct}
+#'   \item{MassWithAdduct}{Calculated mass including adduct}
+#'   \item{MassQueried}{Measured mass that was queried}
+#'   \item{DeltaPPM}{Deviation in ppm between measured and expected mass}
+#' }
+#'
+#' @details
+#' 1. Calculates the neutral mass for each adduct: `(m - MassDiff)/Nmol`.
+#' 2. Compares neutral mass to the reference metabolite monoisotopic mass.  
+#' 3. Selects all matches within `ppmtol` ppm.  
+#' 4. Returns a combined data frame with reference metabolite info, adduct info, 
+#'    calculated mass with adduct, queried mass, and deviation in ppm.
+#'
 #' @examples
-#' # library(MAIT)
-#' # library(xcmsViewerData)
-#' # data(MAITtables)
-#' # m1 <- get_annotation_mass("HMDB")
-#' # q <- massQuery(168.07864 * 2 + 1.007276, ppmtol=10, refTab=m1, addTable=posAdducts, ID=NULL)
+#' \dontrun{
+#' # Load reference data from MAIT
+#' library(MAIT)
+#' data(MAITtables)
+#' 
+#' # Example: Query m/z = 337.1 for positive adducts
+#' refTab <- get_annotation_mass("HMDB")  # reference metabolite table
+#' q <- massQuery(
+#'   m = 337.1,
+#'   ppmtol = 10,
+#'   refTab = refTab,
+#'   addTable = posAdducts,
+#'   ID = "Feature1"
+#' )
+#' head(q)
+#' }
+#'
 #' @export
 
 massQuery <- function(m, ppmtol, refTab, addTable, ID=NULL) {
