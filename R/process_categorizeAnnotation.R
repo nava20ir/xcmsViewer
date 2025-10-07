@@ -1,4 +1,58 @@
 
+#' Categorize Annotation Levels Based on MS2 Spectra and Retention Time
+#'
+#' This function classifies metabolite annotations into confidence categories
+#' based on MS2 spectral similarity and retention time differences. It compares
+#' annotated spectra to measured spectra and assigns levels (0–4) reflecting
+#' the confidence of the annotation.
+#'
+#' @param fd A \code{data.frame} containing feature data. Must include columns:
+#' \code{ID}, \code{mzmed}, \code{rtmed}, and MS2 spectra columns ending with
+#' \code{"ms2spectrum"}.
+#' @param an A \code{data.frame} of annotation data. Must contain columns such as
+#' \code{ID}, \code{ms2_mass}, \code{ms2_intensity}, \code{RT}, and
+#' \code{MassWithAdduct}.
+#' @param ppmtol Numeric; mass tolerance in parts per million (PPM) for matching
+#' fragment ions between spectra.
+#'
+#' @details
+#' The function computes annotation confidence based on two main criteria:
+#' \itemize{
+#' \item \strong{Spectral similarity:} Using \code{.prep_mirrorPlot()}, the
+#' function aligns annotated and measured MS2 spectra, removes precursor peaks,
+#' and computes the proportion of matched fragment intensities.
+#' \item \strong{Retention time proximity:} If MS2 data are insufficient,
+#' annotation confidence is estimated based on the absolute difference in
+#' retention time between the annotation and the measured feature.
+#' }
+#'
+#' The resulting levels are:
+#' \describe{
+#' \item{0}{No match (poor spectral or RT agreement)}
+#' \item{1}{Weak RT-based match only}
+#' \item{2}{Moderate spectral similarity}
+#' \item{3}{Good RT agreement without MS2 data}
+#' \item{4}{Strong spectral similarity (high-confidence annotation)}
+#' }
+#'
+#' @return A \code{list} containing:
+#' \describe{
+#' \item{\code{an}}{Updated annotation table with a new column \code{category}.}
+#' \item{\code{fd}}{Updated feature data table with an additional column
+#' \code{annot_ms2}, indicating the highest annotation category per feature.}
+#' }
+#'
+#' @seealso
+#' \code{\link{.prep_mirrorPlot}}, \code{\link{str2spectra}}
+#'
+#' @examples
+#' \dontrun{
+#' # Example usage:
+#' result <- categorizeAnnotation(fd, an, ppmtol = 20)
+#' head(result$an)
+#' }
+#'
+#' @export
 categorizeAnnotation <- function(fd, an, ppmtol) {
   
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ function start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
