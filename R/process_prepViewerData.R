@@ -234,7 +234,25 @@ prepViewerData <- function(
   ######## PCA #######
   
   pc_f <- multi.pca(expr, pheno = pd, compare = compare.pca, n = min(nrow(pd), nf), fillNA = TRUE, prefix = "PCA_filled")
-  pc_nf <- multi.pca(expr, pheno = pd, compare = compare.pca, n = min(nrow(pd), nf), fillNA = FALSE, prefix = "PCA_nofill")
+  pc_nf <- tryCatch(
+    {
+      multi.pca(
+        expr,
+        pheno   = pd,
+        compare = compare.pca,
+        n       = min(nrow(pd), nf),
+        fillNA  = FALSE,
+        prefix  = "PCA_nofill"
+      )
+    },
+    error = function(e) {
+      message("❌ Error in multi.pca(): ", e$message)
+      return( multi.pca(expr, pheno = pd, compare = compare.pca, n = min(nrow(pd), nf), fillNA = TRUE, prefix = "PCA_nofill"))
+    }
+  )
+
+
+
   
   sample_list <- list(pc_f$samples, pc_nf$samples)
   sample_list <- sample_list[!sapply(sample_list, function(x) is.null(x) || nrow(x) == 0)]
